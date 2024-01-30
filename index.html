@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>タイトル</title>
+</head>
+<body>
+
+<script>
+
+//連絡失敗率
+MiscRennraku = 0.25;
+//艦隊の発見の失敗率(見落とし)
+MiscHakkenn = 0.25;
+//空母有無誤認率
+MiscGoninn = 0.25;
+
+KanntaiSuu = 6-1;//設定できる艦隊の数、これを変更する場合は他の箇所も要変更
+
+JpCar = new Array(-1,-1,-1,-1,-1,-1);
+JpFee = new Array(-1,-1,-1,-1,-1,-1);
+UsCar = new Array(-1,-1,-1,-1,-1,-1);
+UsFee = new Array(-1,-1,-1,-1,-1,-1);
+
+function JpCarIchi() {
+	Kaisuu = 0;
+	for (Kaisuu=0;Kaisuu<=KanntaiSuu;Kaisuu++) {
+		let KariHennsuu = prompt('空母を含む艦隊の位置のへクス番号を半角数字で入力してください\n艦隊が存在しない場合はキャンセルを押してください');
+		if (KariHennsuu==null) {
+			KariHennsuu = -1;
+			JpCar[Kaisuu] = -1;
+			break;
+		}
+		if(isNaN(KariHennsuu)){
+			alert("エラー：半角数字で入力してください");
+			JpCar = new Array(-1,-1,-1,-1,-1,-1);
+			break;
+		}
+		if(!isNaN(KariHennsuu)){
+			JpCar[Kaisuu] = KariHennsuu;
+		}
+	}
+	//テスト用
+	document.For00.Memo00.defaultValue = "空母を含む艦隊の位置は以下のように設定されました\n"+JpCar+"\n(-1は艦隊が存在しないことを表す)\n誤りがあれば再度入力しなおしてください";
+}
+
+function UsCarIchi() {
+	Kaisuu = 0;
+	for (Kaisuu=0;Kaisuu<=KanntaiSuu;Kaisuu++) {
+		let KariHennsuu = prompt('空母を含む艦隊の位置のへクス番号を半角数字で入力してください\n艦隊が存在しない場合はキャンセルを押してください');
+		if (KariHennsuu==null) {
+			KariHennsuu = -1;
+			UsCar[Kaisuu] = -1;
+			break;
+		}
+		if(isNaN(KariHennsuu)){
+			alert("エラー：半角数字で入力してください");
+			UsCar = new Array(-1,-1,-1,-1,-1,-1);
+			break;
+		}
+		if(!isNaN(KariHennsuu)){
+			UsCar[Kaisuu] = KariHennsuu;
+		}
+	}
+	//テスト用
+	document.For00.Memo00.defaultValue = "空母を含む艦隊の位置は以下のように設定されました\n"+UsCar+"\n(-1は艦隊が存在しないことを表す)\n誤りがあれば再度入力しなおしてください";
+}
+
+function JpFeeIchi() {
+	Kaisuu = 0;
+	for (Kaisuu=0;Kaisuu<=KanntaiSuu;Kaisuu++) {
+		let KariHennsuu = prompt('空母を含まない艦隊の位置のへクス番号を半角数字で入力してください\n艦隊が存在しない場合はキャンセルを押してください');
+		if (KariHennsuu==null) {
+			KariHennsuu = -1;
+			JpFee[Kaisuu] = -1;
+			break;
+		}
+		if(isNaN(KariHennsuu)){
+			alert("エラー：半角数字で入力してください");
+			JpFee = new Array(-1,-1,-1,-1,-1,-1);
+		}
+		if(!isNaN(KariHennsuu)){
+			JpFee[Kaisuu] = KariHennsuu;
+		}
+	}
+	document.For00.Memo00.defaultValue = "空母を含まない艦隊の位置は以下のように設定されました\n"+JpFee+"\n(-1は艦隊が存在しないことを表す)\n誤りがあれば再度入力しなおしてください";
+}
+
+function UsFeeIchi() {
+	Kaisuu = 0;
+	for (Kaisuu=0;Kaisuu<=KanntaiSuu;Kaisuu++) {
+		let KariHennsuu = prompt('空母を含まない艦隊の位置のへクス番号を半角数字で入力してください\n艦隊が存在しない場合はキャンセルを押してください');
+		if (KariHennsuu==null) {
+			KariHennsuu = -1;
+			UsFee[Kaisuu] = -1;
+			break;
+		}
+		if(isNaN(KariHennsuu)){
+			alert("エラー：半角数字で入力してください");
+			UsFee = new Array(-1,-1,-1,-1,-1,-1);
+		}
+		if(!isNaN(KariHennsuu)){
+			UsFee[Kaisuu] = KariHennsuu;
+		}
+	}
+	document.For00.Memo00.defaultValue = "空母を含まない艦隊の位置は以下のように設定されました\n"+UsFee+"\n(-1は艦隊が存在しないことを表す)\n誤りがあれば再度入力しなおしてください";
+}
+
+function JpSakuteki() {
+	//索敵する周囲6へクスを指定
+	SakutekiHex = new Array(-1,-1,-1,-1,-1,-1,-1);
+	let KariHennsuu = prompt('索敵するへクス番号を指定してください');
+	if(isNaN(KariHennsuu)){
+		alert("エラー：半角数字で入力してください\nエラーのため、へクス99999が索敵されます");
+		KariHennsuu = 99999;
+	}
+	KariHennsuu = Number(KariHennsuu);
+	if(Math.floor(KariHennsuu/100)%2==0) {
+		SakutekiHex = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-101,KariHennsuu-100,KariHennsuu+99,KariHennsuu+100);
+	}
+	if(Math.floor(KariHennsuu/100)%2==1) {
+		SakutekiHex = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-100,KariHennsuu-99,KariHennsuu+100,KariHennsuu+101);
+	}
+	//索敵フラグを設定
+	SakutekiFlag = 0;//正確な報告
+	if (Math.random()<=MiscRennraku) { SakutekiFlag = 1; }//連絡なし
+	if (SakutekiFlag==0) { if (Math.random()<=MiscHakkenn) { SakutekiFlag = 2; } }//敵艦隊見落とし
+	if (SakutekiFlag==0) { if (Math.random()<=MiscGoninn) { SakutekiFlag = 3; } }//誤認
+	//索敵を実行
+	SakutekiKekka = new Array(0,0,0,0,0,0,0);//0なし、1空母、2空母無し
+	if (SakutekiFlag==0 || SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			for (Kaisuu2=0;Kaisuu2<=KanntaiSuu;Kaisuu2++) {
+				if (SakutekiHex[Kaisuu]==JpCar[Kaisuu2]) {
+					SakutekiKekka[Kaisuu] = 1;
+				}
+				if (SakutekiHex[Kaisuu]==JpFee[Kaisuu2]) {
+					SakutekiKekka[Kaisuu] = 2;
+				}
+			}
+		}
+	}
+	//艦種誤認
+	if (SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			if (SakutekiKekka[Kaisuu]==1) { SakutekiKekka[Kaisuu] = 3; }
+			if (SakutekiKekka[Kaisuu]==2) { SakutekiKekka[Kaisuu] = 1; }
+			if (SakutekiKekka[Kaisuu]==3) { SakutekiKekka[Kaisuu] = 2; }
+		}
+	}
+	//メッセージ出力
+	MessageText = "";
+	HakkennHoukokuSuu = 0;
+	if (SakutekiFlag==0 || SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			if (SakutekiKekka[Kaisuu]==1) { MessageText += "空母を含む艦隊見ゆ、地点"+SakutekiHex[Kaisuu]+"\n"; HakkennHoukokuSuu++; }
+			if (SakutekiKekka[Kaisuu]==2) { MessageText += "空母を含まない艦隊見ゆ、地点"+SakutekiHex[Kaisuu]+"\n"; HakkennHoukokuSuu++; }
+		}
+		if (HakkennHoukokuSuu==0) { MessageText ="敵艦隊見えず"; }
+	}
+	if (SakutekiFlag==1) { MessageText ="連絡なし"; }
+	if (SakutekiFlag==2) { MessageText ="敵艦隊見えず"; }
+	document.For00.Memo00.defaultValue = MessageText;
+}
+
+function UsSakuteki() {
+	//索敵する周囲6へクスを指定
+	SakutekiHex = new Array(-1,-1,-1,-1,-1,-1,-1);
+	let KariHennsuu = prompt('索敵するへクス番号を指定してください');
+	if(isNaN(KariHennsuu)){
+		alert("エラー：半角数字で入力してください\nエラーのため、へクス99999が索敵されます");
+		KariHennsuu = 99999;
+	}
+	KariHennsuu = Number(KariHennsuu);
+	if(Math.floor(KariHennsuu/100)%2==0) {
+		SakutekiHex = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-101,KariHennsuu-100,KariHennsuu+99,KariHennsuu+100);
+	}
+	if(Math.floor(KariHennsuu/100)%2==1) {
+		SakutekiHex = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-100,KariHennsuu-99,KariHennsuu+100,KariHennsuu+101);
+	}
+	//索敵フラグを設定
+	SakutekiFlag = 0;//正確な報告
+	if (Math.random()<=MiscRennraku) { SakutekiFlag = 1; }//連絡なし
+	if (SakutekiFlag==0) { if (Math.random()<=MiscHakkenn) { SakutekiFlag = 2; } }//敵艦隊見落とし
+	if (SakutekiFlag==0) { if (Math.random()<=MiscGoninn) { SakutekiFlag = 3; } }//誤認
+	//索敵を実行
+	SakutekiKekka = new Array(0,0,0,0,0,0,0);//0なし、1空母、2空母無し
+	if (SakutekiFlag==0 || SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			for (Kaisuu2=0;Kaisuu2<=KanntaiSuu;Kaisuu2++) {
+				if (SakutekiHex[Kaisuu]==UsCar[Kaisuu2]) {
+					SakutekiKekka[Kaisuu] = 1;
+				}
+				if (SakutekiHex[Kaisuu]==UsFee[Kaisuu2]) {
+					SakutekiKekka[Kaisuu] = 2;
+				}
+			}
+		}
+	}
+	//艦種誤認
+	if (SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			if (SakutekiKekka[Kaisuu]==1) { SakutekiKekka[Kaisuu] = 3; }
+			if (SakutekiKekka[Kaisuu]==2) { SakutekiKekka[Kaisuu] = 1; }
+			if (SakutekiKekka[Kaisuu]==3) { SakutekiKekka[Kaisuu] = 2; }
+		}
+	}
+	//メッセージ出力
+	MessageText = "";
+	HakkennHoukokuSuu = 0;
+	if (SakutekiFlag==0 || SakutekiFlag==3) {
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			if (SakutekiKekka[Kaisuu]==1) { MessageText += "空母を含む艦隊見ゆ、地点"+SakutekiHex[Kaisuu]+"\n"; HakkennHoukokuSuu++; }
+			if (SakutekiKekka[Kaisuu]==2) { MessageText += "空母を含まない艦隊見ゆ、地点"+SakutekiHex[Kaisuu]+"\n"; HakkennHoukokuSuu++; }
+		}
+		if (HakkennHoukokuSuu==0) { MessageText ="敵艦隊見えず"; }
+	}
+	if (SakutekiFlag==1) { MessageText ="連絡なし"; }
+	if (SakutekiFlag==2) { MessageText ="敵艦隊見えず"; }
+	document.For00.Memo00.defaultValue = MessageText;
+}
+
+SakutekiHex1 = new Array(-1,-1,-1,-1,-1,-1,-1);
+SakutekiHex2 = new Array(-1,-1,-1,-1,-1,-1,-1);
+
+function Sessyoku() {
+	MessageText = "";
+	HakkennHoukokuSuu = 0;
+	for (Kaisuu3=0;Kaisuu3<=KanntaiSuu;Kaisuu3++) {
+		//索敵する周囲6へクスを指定
+		KariHennsuu = JpCar[Kaisuu3];
+		if (KariHennsuu!=-1) {
+			if(Math.floor(KariHennsuu/100)%2==0) {
+				SakutekiHex1 = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-101,KariHennsuu-100,KariHennsuu+99,KariHennsuu+100);
+			}
+			if(Math.floor(KariHennsuu/100)%2==1) {
+				SakutekiHex1 = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-100,KariHennsuu-99,KariHennsuu+100,KariHennsuu+101);
+			}
+		}
+		if (KariHennsuu==-1) {
+			SakutekiHex1 = new Array(-9999,-9999,-9999,-9999,-9999,-9999,-9999);
+		}
+		KariHennsuu = JpFee[Kaisuu3];
+		if (KariHennsuu!=-1) {
+			if(Math.floor(KariHennsuu/100)%2==0) {
+				SakutekiHex2 = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-101,KariHennsuu-100,KariHennsuu+99,KariHennsuu+100);
+			}
+			if(Math.floor(KariHennsuu/100)%2==1) {
+				SakutekiHex2 = new Array(KariHennsuu,KariHennsuu+1,KariHennsuu-1,KariHennsuu-100,KariHennsuu-99,KariHennsuu+100,KariHennsuu+101);
+			}
+		}
+		if (KariHennsuu==-1) {
+			SakutekiHex2 = new Array(-9999,-9999,-9999,-9999,-9999,-9999,-9999);
+		}
+		//索敵を実行
+		for (Kaisuu=0;Kaisuu<=6;Kaisuu++) {
+			for (Kaisuu2=0;Kaisuu2<=KanntaiSuu;Kaisuu2++) {
+				if (SakutekiHex1[Kaisuu]==UsCar[Kaisuu2]) {
+					MessageText += "日米艦隊接触\n日本艦隊、位置"+JpCar[Kaisuu3]+"\n米国艦隊、位置"+UsCar[Kaisuu2]+"\n";
+					HakkennHoukokuSuu++;
+				}
+				if (SakutekiHex1[Kaisuu]==UsFee[Kaisuu2]) {
+					MessageText += "日米艦隊接触\n日本艦隊、位置"+JpCar[Kaisuu3]+"\n米国艦隊、位置"+UsFee[Kaisuu2]+"\n";
+					HakkennHoukokuSuu++;
+				}
+			}
+			for (Kaisuu2=0;Kaisuu2<=KanntaiSuu;Kaisuu2++) {
+				if (SakutekiHex2[Kaisuu]==UsCar[Kaisuu2]) {
+					MessageText += "日米艦隊接触\n日本艦隊、位置"+JpFee[Kaisuu3]+"\n米国艦隊、位置"+UsCar[Kaisuu2]+"\n";
+					HakkennHoukokuSuu++;
+				}
+				if (SakutekiHex2[Kaisuu]==UsFee[Kaisuu2]) {
+					MessageText += "日米艦隊接触\n日本艦隊、位置"+JpFee[Kaisuu3]+"\n米国艦隊、位置"+UsFee[Kaisuu2]+"\n";
+					HakkennHoukokuSuu++;
+				}
+			}
+		}
+	}
+	//メッセージ出力
+	if (HakkennHoukokuSuu==0) {
+		MessageText ="敵艦隊見えず";
+	}
+	document.For00.Memo00.defaultValue = MessageText;
+}
+
+function Del() {
+	document.For00.Memo00.defaultValue = "メッセージを消去しました";
+}
+
+function Settei() {
+	let KariHennsuu = prompt('連絡失敗率を設定してください(半角数字,25で25％)\nキャンセルでデフォルトの25％に設定されます');
+	if(isNaN(KariHennsuu)){
+		alert("エラー：半角数字で入力してください");
+		MiscRennraku = 0.25;
+	}
+	if(!isNaN(KariHennsuu)){
+		MiscRennraku = KariHennsuu/100;
+	}
+	if (KariHennsuu==null) {
+		MiscRennraku = 0.25;
+	}
+	let KariHennsuu2 = prompt('艦隊の発見の失敗率(見落とし)を設定してください(半角数字,25で25％)\nキャンセルでデフォルトの25％に設定されます');
+	if(isNaN(KariHennsuu2)){
+		alert("エラー：半角数字で入力してください");
+		MiscHakkenn = 0.25;
+	}
+	if(!isNaN(KariHennsuu2)){
+		MiscHakkenn = KariHennsuu2/100;
+	}
+	if (KariHennsuu2==null) {
+		MiscHakkenn = 0.25;
+	}
+	let KariHennsuu3 = prompt('空母有無誤認率を設定してください(半角数字,25で25％)\nキャンセルでデフォルトの25％に設定されます');
+	if(isNaN(KariHennsuu3)){
+		alert("エラー：半角数字で入力してください");
+		MiscGoninn = 0.25;
+	}
+	if(!isNaN(KariHennsuu3)){
+		MiscGoninn = KariHennsuu3/100;
+	}
+	if (KariHennsuu3==null) {
+		MiscGoninn = 0.25;
+	}
+}
+
+</script>
+
+<input type="button" value="日本 空母を含む艦隊の位置設定" onclick="JpCarIchi()">　<input type="button" value="日本 空母を含まない艦隊の位置設定" onclick="JpFeeIchi()"><br><br>
+<input type="button" value="米国 空母を含む艦隊の位置設定" onclick="UsCarIchi()">　<input type="button" value="米国 空母を含まない艦隊の位置設定" onclick="UsFeeIchi()"><br><br>
+<input type="button" value="日本 米国艦隊を索敵" onclick="UsSakuteki()">　<input type="button" value="米国 日本艦隊を索敵" onclick="JpSakuteki()">　<input type="button" value="接触判定" onclick="Sessyoku()"><br><br>
+<br><br>
+<tr><td><form name="For00"><textarea name="Memo00" cols=70 rows=4>メッセージ欄</textarea></form></td></tr><br><br>
+<input type="button" value="メッセージを消去" onclick="Del()"><br><br>
+<input type="button" value="設定" onclick="Settei()"><br><br>
+
+<br><br>
+
+【ゲーム手順】<br>
+
+<br>
+
+１．移動フェイズ……両軍、移動した先のへクスを位置設定コマンドで入力します<br>
+
+２．砲撃戦フェイズ……接触判定コマンドを実行し、接触地点があれば砲撃戦を行います<br>
+
+３．爆撃フェイズ……空母直掩隊(別艦隊への出張直掩も含む)の編成や(爆撃範囲内に発見状態の敵艦隊が存在すれば)爆撃隊の編成を行います<br>
+
+４．索敵フェイズ……索敵コマンドで索敵を行います<br>
+
+<br>
+
+【ルールについて】<br>
+
+<br>
+
+・ゲームの公式ルールでは、移動や爆撃などに日米軍/先攻後攻というルールがありますが、本プログラムを利用する場合は先攻後攻は関係ありません<br>
+
+　移動・爆撃は事前に計画して一斉に公開して実行します、索敵は順番にプログラムを利用して実施します<br>
+
+・米軍にはレーダーに関する優位があります(空母vs空母の4.3.3を参照)<br>
+
+　本プログラムを用いる場合、日本空母が攻撃を受けた際、ダイスを振って3以下の目が出た場合、日本軍は発艦準備状態にある戦闘機隊を直掩に上げることができます<br>
+
+　米空母はダイスを振ることなく、発艦準備状態にある戦闘機隊を直掩に上げることができます<br>
+
+・索敵へクス数は、公式ルールブックにおいては、日本軍が空母1つにつき2へクス、米軍が空母1つにつき3へクスと提案されています<br>
+
+・本プログラムを利用したゲームでは、両軍ともに互いの艦隊の位置を秘匿しながら進めます<br>
+
+　どの位置に艦隊が存在するか忘れないよう、マップをコンビニで白黒コピーしておき、それに書き込みながらゲームを進めるのをお勧めします<br>
+
+　各ターンに1枚ずつ使うようすれば、ゲーム後に互いの動きを振り返ることもできます<br>
+
+<br>
+
+【プログラムの仕様】<br>
+
+<br>
+
+・艦隊は空母を含む艦隊、含まない艦隊がそれぞれ6個まで編成できます<br>
+
+・プログラムでは、連絡の判定→艦隊発見の判定→空母誤認の判定を順に行っています(失敗率は各25％)<br>
+
+　デフォルト設定の場合、空母を含む艦隊艦隊に対し、約4割の確率で正しく"空母を含む艦隊発見"の報告が行われます<br>
+
+・索敵は指定したへクスの周囲6へクスを含めて計7へクスに索敵が行われます<br>
+
+・7へクスはひとまとめとして扱われるため、空母有無誤認などは7へクス全てで結果が共有されます<br>
+
+<br>
+
+【忘備録】<br>
+
+<br>
+
+索敵……母艦から8へクス以内<br>
+
+爆撃……母艦から5へクス以内(TBDは4へクス)<br>
+
+</body>
+</html>
